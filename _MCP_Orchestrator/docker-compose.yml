@@ -1,0 +1,192 @@
+version: '3.8'
+
+services:
+  # --- A. Herramientas de Desarrollo y Bases de Datos ---
+  
+  mcp-github:
+    image: mcp/github:latest
+    container_name: mcp-github
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    ports:
+      - "8081:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  mcp-supabase:
+    image: node:20-alpine
+    container_name: mcp-supabase
+    working_dir: /app
+    command: npx -y @modelcontextprotocol/server-supabase
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    ports:
+      - "8082:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  mcp-mongodb:
+    image: mongo:latest
+    container_name: mcp-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-secret}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  mcp-postgresql:
+    image: postgres:15
+    container_name: mcp-postgresql
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secret}
+      - POSTGRES_DB=${POSTGRES_DB:-mcp_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  mcp-filesystem:
+    image: node:20-alpine
+    container_name: mcp-filesystem
+    working_dir: /app
+    command: npx -y @modelcontextprotocol/server-filesystem /data
+    volumes:
+      - ./data:/data
+    ports:
+      - "8083:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  # --- B. Automatización y Productividad ---
+
+  mcp-notion:
+    image: node:20-alpine
+    container_name: mcp-notion
+    working_dir: /app
+    command: npx -y @notionhq/mcp-server
+    environment:
+      - NOTION_API_KEY=${NOTION_API_KEY}
+    ports:
+      - "8084:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  mcp-slack:
+    image: node:20-alpine
+    container_name: mcp-slack
+    working_dir: /app
+    command: npx -y @modelcontextprotocol/server-slack
+    environment:
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      - SLACK_TEAM_ID=${SLACK_TEAM_ID}
+    ports:
+      - "8085:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  mcp-google-calendar:
+    image: node:20-alpine
+    container_name: mcp-google-calendar
+    working_dir: /app
+    command: npx -y @modelcontextprotocol/server-google-calendar
+    environment:
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    ports:
+      - "8086:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  mcp-gmail:
+    image: node:20-alpine
+    container_name: mcp-gmail
+    working_dir: /app
+    command: npx -y @modelcontextprotocol/server-gmail
+    environment:
+      - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID}
+      - GMAIL_CLIENT_SECRET=${GMAIL_CLIENT_SECRET}
+    ports:
+      - "8087:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  mcp-playwright:
+    image: mcr.microsoft.com/playwright:v1.40.0-focal
+    container_name: mcp-playwright
+    working_dir: /app
+    command: npx -y @modelcontextprotocol/server-playwright
+    ports:
+      - "8088:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  # --- C. Herramientas de IA y Analítica ---
+
+  mcp-sentry:
+    image: node:20-alpine
+    container_name: mcp-sentry
+    working_dir: /app
+    command: npx -y @modelcontextprotocol/server-sentry
+    environment:
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+    ports:
+      - "8089:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  mcp-brave-search:
+    image: node:20-alpine
+    container_name: mcp-brave-search
+    working_dir: /app
+    command: npx -y @modelcontextprotocol/server-brave-search
+    environment:
+      - BRAVE_API_KEY=${BRAVE_API_KEY}
+    ports:
+      - "8090:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  # --- D. Infraestructura y Cloud ---
+
+  mcp-cloudflare:
+    image: node:20-alpine
+    container_name: mcp-cloudflare
+    working_dir: /app
+    command: npx -y @cloudflare/mcp-server-cloudflare
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
+    ports:
+      - "8091:8080"
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  mongodb-data:
+  postgres-data:
