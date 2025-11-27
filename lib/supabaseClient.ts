@@ -6,6 +6,10 @@ import { AuditSeverity, AuditEventType } from '../types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
+// DEBUG: Log to verify env vars are loaded
+console.log('[SUPABASE] URL:', SUPABASE_URL);
+console.log('[SUPABASE] KEY:', SUPABASE_ANON_KEY ? 'LOADED' : 'MISSING');
+
 // Detect if we are using default/placeholder credentials
 const isDemo = SUPABASE_URL.includes('your-project') || !SUPABASE_URL || SUPABASE_URL === 'https://demo.local';
 
